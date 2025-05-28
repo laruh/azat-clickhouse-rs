@@ -145,7 +145,8 @@ impl Certificate {
 
     /// Parses a PEM-formatted X509 certificate.
     pub fn from_pem(pem: &[u8]) -> Result<Certificate> {
-        let certs = rustls_pemfile::certs(&mut pem.as_ref())
+        let mut reader = pem;
+        let certs = rustls_pemfile::certs(&mut reader)
             .map(|result| result.unwrap())
             .collect();
         Ok(Certificate(Arc::new(certs)))
