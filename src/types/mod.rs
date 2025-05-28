@@ -341,7 +341,7 @@ pub enum SqlType {
 }
 
 lazy_static! {
-    static ref TYPES_CACHE: Mutex<HashMap<SqlType, Pin<Box<SqlType>>>> = Mutex::new(HashMap::new());
+    static ref TYPES_CACHE: Mutex<HashMap<SqlType, &'static SqlType>> = Mutex::new(HashMap::new());
 }
 
 impl From<SqlType> for &'static SqlType {
@@ -361,12 +361,13 @@ impl From<SqlType> for &'static SqlType {
             SqlType::Date => &SqlType::Date,
             _ => {
                 let mut guard = TYPES_CACHE.lock().unwrap();
-                loop {
-                    if let Some(value_ref) = guard.get(&value.clone()) {
-                        return unsafe { mem::transmute(value_ref.as_ref()) };
-                    }
-                    guard.insert(value.clone(), Box::pin(value.clone()));
+                if let Some(existing) = guard.get(&value) {
+                    return existing;
                 }
+
+                let leaked: &'static SqlType = Box::leak(Box::new(value.clone()));
+                guard.insert(value.clone(), leaked);
+                leaked
             }
         }
     }

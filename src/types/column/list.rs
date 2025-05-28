@@ -99,7 +99,6 @@ mod test {
     use rand::random;
 
     use super::*;
-    use std::f64::EPSILON;
 
     #[test]
     fn test_push_and_len() {
@@ -120,7 +119,7 @@ mod test {
             assert_eq!(list.len(), count);
 
             for (i, v) in vs.iter().take(count).enumerate() {
-                assert!((list.at(i) - *v).abs() < EPSILON);
+                assert!((list.at(i) - *v).abs() < f64::EPSILON);
             }
 
             let k = random();

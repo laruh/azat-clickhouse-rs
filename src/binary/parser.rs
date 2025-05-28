@@ -25,7 +25,7 @@ impl<'i, T: Read> Parser<'i, T> {
     /// than one value can be behind the reader in which case the parser can
     /// be invoked multiple times.  In other words: the stream does not have
     /// to be terminated.
-    pub(crate) fn new(reader: T, info: &'i TransportInfo) -> Parser<T> {
+    pub(crate) fn new(reader: T, info: &'i TransportInfo) -> Parser<'i,T> {
         Self { reader, info }
     }
 
@@ -69,7 +69,7 @@ impl<'i, T: Read> Parser<'i, T> {
         let timezone = if revision >= protocol::DBMS_MIN_REVISION_WITH_SERVER_TIMEZONE {
             match self.reader.read_string()?.parse() {
                 Ok(tz) => tz,
-                Err(err) => return Err(io::Error::new(io::ErrorKind::Other, err).into()),
+                Err(err) => return Err(io::Error::other(err).into()),
             }
         } else {
             Tz::UTC

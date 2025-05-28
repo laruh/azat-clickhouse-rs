@@ -50,6 +50,7 @@ pub trait ColumnData {
     }
 }
 
+#[allow(dead_code)]
 pub(crate) trait ColumnDataExt {
     fn append<T: Into<Value>>(&mut self, value: T);
 }

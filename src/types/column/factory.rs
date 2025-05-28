@@ -248,10 +248,7 @@ fn parse_fixed_string(source: &str) -> Option<usize> {
     }
 
     let inner_size = &source[12..source.len() - 1];
-    match inner_size.parse::<usize>() {
-        Err(_) => None,
-        Ok(value) => Some(value),
-    }
+    inner_size.parse::<usize>().ok()
 }
 
 fn parse_nullable_type(source: &str) -> Option<&str> {
@@ -476,7 +473,7 @@ fn parse_date_time(source: &str) -> Option<Option<String>> {
         ));
 
     match parser.parse(source) {
-        Ok((timezone, remain)) if remain.is_empty() => Some(timezone),
+        Ok((timezone, "")) => Some(timezone),
         _ => None,
     }
 }
@@ -511,7 +508,7 @@ fn parse_date_time64(source: &str) -> Option<(u32, Option<String>)> {
         .skip(token(')'));
 
     match parser.parse(source) {
-        Ok((pair, remain)) if remain.is_empty() => Some(pair),
+        Ok((pair, "")) => Some(pair),
         _ => None,
     }
 }

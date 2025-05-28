@@ -201,7 +201,7 @@ impl ClientTlsIdentity {
             .map_err(|e| format!("Cannot read private key from {}: {}", key_path, e))?;
         let key = Arc::new(key);
         let certs = load_certificate(cert_path)?;
-        return Ok(Self::Pem{ key, certs });
+        Ok(Self::Pem{ key, certs })
     }
 
     #[cfg(feature = "tls-native-tls")]

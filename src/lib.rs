@@ -607,7 +607,7 @@ impl ClientHandle {
     fn get_inner(&mut self) -> Result<ClickhouseTransport> {
         self.inner
             .take()
-            .ok_or_else(|| Error::Connection(ConnectionError::Broken))
+            .ok_or(Error::Connection(ConnectionError::Broken))
     }
 }
 

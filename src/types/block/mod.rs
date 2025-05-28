@@ -42,6 +42,7 @@ pub trait ColumnIdx {
     fn get_index<K: ColumnType>(&self, columns: &[Column<K>]) -> Result<usize>;
 }
 
+#[allow(dead_code)]
 pub trait Sliceable {
     fn slice_type() -> SqlType;
 }
@@ -119,7 +120,7 @@ impl ColumnIdx for usize {
     }
 }
 
-impl<'a> ColumnIdx for &'a str {
+impl ColumnIdx for &str {
     fn get_index<K: ColumnType>(&self, columns: &[Column<K>]) -> Result<usize> {
         match columns
             .iter()
