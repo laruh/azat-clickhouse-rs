@@ -1369,8 +1369,12 @@ where
                 _marker: marker::PhantomData,
             };
 
-            let iter =
-                unsafe { T::iter(mem::transmute(&column), self.column_type.clone()) }.unwrap();
+            let iter = unsafe {
+                T::iter(
+                    mem::transmute::<&Column<Simple>, &'a Column<Simple>>(&column),
+                    self.column_type.clone()
+                )
+            }.unwrap();
 
             self.current = Some(iter);
             self.current_index += 1;
