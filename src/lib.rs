@@ -110,7 +110,9 @@
 #![recursion_limit = "1024"]
 
 #[cfg(all(feature = "tls-native-tls", feature = "tls-rustls"))]
-compile_error!("tls-native-tls and tls-rustls are mutually exclusive and cannot be enabled together");
+compile_error!(
+    "tls-native-tls and tls-rustls are mutually exclusive and cannot be enabled together"
+);
 
 use std::{fmt, future::Future, time::Duration};
 
@@ -328,7 +330,8 @@ impl ClientHandle {
         }
 
         self.inner = h;
-        self.context.server_info = info.ok_or(Error::Other("Missing Hello/Exception packet".into()))?;
+        self.context.server_info =
+            info.ok_or(Error::Other("Missing Hello/Exception packet".into()))?;
         Ok(())
     }
 

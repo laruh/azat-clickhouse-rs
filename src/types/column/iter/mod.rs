@@ -1372,9 +1372,10 @@ where
             let iter = unsafe {
                 T::iter(
                     mem::transmute::<&Column<Simple>, &'a Column<Simple>>(&column),
-                    self.column_type.clone()
+                    self.column_type.clone(),
                 )
-            }.unwrap();
+            }
+            .unwrap();
 
             self.current = Some(iter);
             self.current_index += 1;

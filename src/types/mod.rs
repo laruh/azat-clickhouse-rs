@@ -8,6 +8,8 @@ use lazy_static::lazy_static;
 
 use crate::{errors::ServerError, types::column::datetime64::DEFAULT_TZ};
 
+#[cfg(feature = "_tls")]
+pub use self::options::ClientTlsIdentity;
 pub use self::{
     block::{Block, RCons, RNil, Row, RowBuilder, Rows},
     column::{Column, ColumnType, Complex, Simple},
@@ -21,8 +23,6 @@ pub use self::{
     value::Value,
     value_ref::ValueRef,
 };
-#[cfg(feature = "_tls")]
-pub use self::options::ClientTlsIdentity;
 
 pub(crate) use self::{
     cmd::Cmd,

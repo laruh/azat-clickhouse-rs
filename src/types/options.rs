@@ -1,3 +1,5 @@
+#[cfg(feature = "_tls")]
+use std::fs;
 use std::{
     borrow::Cow,
     collections::HashMap,
@@ -6,8 +8,6 @@ use std::{
     sync::{Arc, Mutex},
     time::Duration,
 };
-#[cfg(feature = "_tls")]
-use std::fs;
 
 use crate::errors::{Error, Result, UrlError};
 use percent_encoding::percent_decode;
@@ -134,7 +134,7 @@ pub struct Certificate(Arc<Vec<rustls::pki_types::CertificateDer<'static>>>);
 #[cfg(feature = "tls-rustls")]
 impl Certificate {
     /// Parses a DER-formatted X509 certificate.
-    pub fn from_der(der: &[u8]) -> Certificate{
+    pub fn from_der(der: &[u8]) -> Certificate {
         let inner = rustls::pki_types::CertificateDer::from(der.to_vec());
         Certificate(Arc::new(vec![inner]))
     }
@@ -198,7 +198,7 @@ impl ClientTlsIdentity {
             .map_err(|e| format!("Cannot read private key from {}: {}", key_path, e))?;
         let key = Arc::new(key);
         let certs = load_certificate(cert_path)?;
-        Ok(Self::Pem{ key, certs })
+        Ok(Self::Pem { key, certs })
     }
 
     #[cfg(feature = "tls-native-tls")]
@@ -206,7 +206,13 @@ impl ClientTlsIdentity {
         let identity = native_tls::Identity::from_pkcs8(
             fs::read(cert_path)?.as_ref(),
             fs::read(key_path)?.as_ref(),
-        ).map_err(|e| format!("Cannot load identity from {} and {}: {}", cert_path, key_path, e))?;
+        )
+        .map_err(|e| {
+            format!(
+                "Cannot load identity from {} and {}: {}",
+                cert_path, key_path, e
+            )
+        })?;
         return Ok(Self::Pkcs(identity));
     }
 }
@@ -360,7 +366,7 @@ pub struct Options {
     pub(crate) alt_hosts: Vec<Url>,
 
     /// Client name (defaults to `Rust SQLDriver`).
-    pub(crate) client_name: String
+    pub(crate) client_name: String,
 }
 
 impl fmt::Debug for Options {
@@ -384,8 +390,7 @@ impl fmt::Debug for Options {
             .field("client_name", &self.client_name);
 
         #[cfg(feature = "_tls")]
-        res
-            .field("secure", &self.secure)
+        res.field("secure", &self.secure)
             .field("ca_certificate", &self.ca_certificate)
             .field("client_tls_identity", &self.client_tls_identity);
 
@@ -684,7 +689,9 @@ where
             #[cfg(feature = "_tls")]
             "skip_verify" => options.skip_verify = parse_param(key, value, bool::from_str)?,
             #[cfg(feature = "_tls")]
-            "ca_certificate" => options.ca_certificate = Some(parse_param(key, value, load_certificate)?),
+            "ca_certificate" => {
+                options.ca_certificate = Some(parse_param(key, value, load_certificate)?)
+            }
             #[cfg(feature = "_tls")]
             "client_certificate" => client_certificate = Some(value),
             #[cfg(feature = "_tls")]
@@ -707,12 +714,13 @@ where
     #[cfg(feature = "_tls")]
     match (client_certificate, client_private_key) {
         (Some(cert), Some(key)) => {
-            options.client_tls_identity = Some(ClientTlsIdentity::load(&cert, &key).map_err(|_| UrlError::Invalid)?);
+            options.client_tls_identity =
+                Some(ClientTlsIdentity::load(&cert, &key).map_err(|_| UrlError::Invalid)?);
         }
         (None, None) => {}
         _ => {
             return Err(UrlError::Invalid);
-        },
+        }
     }
 
     Ok(())

@@ -30,13 +30,13 @@ use {
 use pin_project::pin_project;
 use url::Url;
 
+#[cfg(feature = "_tls")]
+use crate::types::ClientTlsIdentity;
 use crate::{errors::ConnectionError, io::Stream as InnerStream, Options};
 #[cfg(feature = "tls-native-tls")]
 use tokio_native_tls::TlsStream;
 #[cfg(feature = "tls-rustls")]
 use tokio_rustls::client::TlsStream;
-#[cfg(feature = "_tls")]
-use crate::types::ClientTlsIdentity;
 
 type Result<T> = std::result::Result<T, ConnectionError>;
 
@@ -279,11 +279,7 @@ impl ConnectingStream {
                         .with_custom_certificate_verifier(Arc::new(DummyTlsVerifier))
                 } else {
                     let mut cert_store = RootCertStore::empty();
-                    cert_store.extend(
-                        webpki_roots::TLS_SERVER_ROOTS
-                            .iter()
-                            .cloned()
-                    );
+                    cert_store.extend(webpki_roots::TLS_SERVER_ROOTS.iter().cloned());
                     if let Some(certificates) = options.ca_certificate.clone() {
                         for certificate in
                             Into::<Vec<rustls::pki_types::CertificateDer<'static>>>::into(
@@ -291,19 +287,20 @@ impl ConnectingStream {
                             )
                         {
                             match cert_store.add(certificate) {
-                                Ok(_) => {},
+                                Ok(_) => {}
                                 Err(err) => {
                                     let err = io::Error::new(
                                         io::ErrorKind::InvalidInput,
                                         format!("Could not load certificate: {}.", err),
                                     );
-                                    return Self { state: State::tcp_err(err) };
-                                },
+                                    return Self {
+                                        state: State::tcp_err(err),
+                                    };
+                                }
                             }
                         }
                     }
-                    ClientConfig::builder()
-                        .with_root_certificates(cert_store)
+                    ClientConfig::builder().with_root_certificates(cert_store)
                 };
                 let config = if let Some(identity) = &options.client_tls_identity {
                     let ClientTlsIdentity::Pem { key, certs } = identity;
@@ -314,8 +311,10 @@ impl ConnectingStream {
                 let config = match config {
                     Ok(config) => config,
                     Err(err) => {
-                        return Self { state: State::tls_err(err) };
-                    },
+                        return Self {
+                            state: State::tls_err(err),
+                        };
+                    }
                 };
                 Self {
                     state: State::tls_wait(Box::pin(async move {
@@ -323,9 +322,7 @@ impl ConnectingStream {
                         let cx = TlsConnector::from(Arc::new(config));
                         let host = ServerName::try_from(host)
                             .map_err(|_| ConnectionError::TlsHostNotProvided)?;
-                        cx.connect(host, s)
-                            .await
-                            .map_err(ConnectionError::IoError)
+                        cx.connect(host, s).await.map_err(ConnectionError::IoError)
                     })),
                 }
             }

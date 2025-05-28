@@ -174,7 +174,12 @@ impl Default for LowCardinalityInternals {
     fn default() -> Self {
         LowCardinalityInternals {
             index: ptr::null_mut(),
-            accessor: unsafe { mem::transmute::<[*mut (); 2], *const dyn LowCardinalityAccessor>([ptr::null_mut(), ptr::null_mut()]) },
+            accessor: unsafe {
+                mem::transmute::<[*mut (); 2], *const dyn LowCardinalityAccessor>([
+                    ptr::null_mut(),
+                    ptr::null_mut(),
+                ])
+            },
         }
     }
 }

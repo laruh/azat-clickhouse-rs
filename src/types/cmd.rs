@@ -46,7 +46,10 @@ fn encode_command(cmd: &Cmd) -> Result<Vec<u8>> {
 fn encode_hello(context: &Context) -> Result<Vec<u8>> {
     let options = context.options.get()?;
 
-    trace!("[hello]        -> {}", client_info::description(&options.client_name));
+    trace!(
+        "[hello]        -> {}",
+        client_info::description(&options.client_name)
+    );
 
     let mut encoder = Encoder::new();
     encoder.uvarint(protocol::CLIENT_HELLO);
