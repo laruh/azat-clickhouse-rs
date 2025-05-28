@@ -80,7 +80,7 @@ impl TlsState {
     fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Result<InnerStream>> {
         match self.project() {
             TlsStateProj::Wait(ref mut inner) => match inner.poll_unpin(cx) {
-                Poll::Ready(Ok(tls)) => Poll::Ready(Ok(InnerStream::Secure(tls))),
+                Poll::Ready(Ok(tls)) => Poll::Ready(Ok(InnerStream::Secure(Box::new(tls)))),
                 Poll::Ready(Err(err)) => Poll::Ready(Err(err)),
                 Poll::Pending => Poll::Pending,
             },

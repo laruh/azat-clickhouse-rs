@@ -27,7 +27,7 @@ type SecureTcpStream = TlsStream<TcpStream>;
 pub(crate) enum Stream {
     Plain(#[pin] TcpStream),
     #[cfg(feature = "_tls")]
-    Secure(#[pin] SecureTcpStream),
+    Secure(#[pin] Box<SecureTcpStream>),
 }
 
 impl From<TcpStream> for Stream {
@@ -39,7 +39,7 @@ impl From<TcpStream> for Stream {
 #[cfg(feature = "_tls")]
 impl From<SecureTcpStream> for Stream {
     fn from(stream: SecureTcpStream) -> Stream {
-        Self::Secure(stream)
+        Self::Secure(Box::new(stream))
     }
 }
 

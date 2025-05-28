@@ -134,9 +134,9 @@ pub struct Certificate(Arc<Vec<rustls::pki_types::CertificateDer<'static>>>);
 #[cfg(feature = "tls-rustls")]
 impl Certificate {
     /// Parses a DER-formatted X509 certificate.
-    pub fn from_der(der: &[u8]) -> Certificate {
+    pub fn from_der(der: &[u8]) -> Result<Certificate> {
         let inner = rustls::pki_types::CertificateDer::from(der.to_vec());
-        Certificate(Arc::new(vec![inner]))
+        Ok(Certificate(Arc::new(vec![inner])))
     }
 
     /// Parses a PEM-formatted X509 certificate.
@@ -172,7 +172,7 @@ impl PartialEq for Certificate {
 pub fn load_certificate(file: &str) -> Result<Certificate> {
     let data = fs::read(file)?;
     if file.ends_with(".der") || file.ends_with(".cer") {
-        Ok(Certificate::from_der(&data))
+        Certificate::from_der(&data)
     } else {
         Certificate::from_pem(&data)
     }
@@ -213,7 +213,7 @@ impl ClientTlsIdentity {
                 cert_path, key_path, e
             )
         })?;
-        return Ok(Self::Pkcs(identity));
+        Ok(Self::Pkcs(identity))
     }
 }
 
