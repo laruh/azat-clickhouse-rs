@@ -323,10 +323,9 @@ impl ConnectingStream {
                         let cx = TlsConnector::from(Arc::new(config));
                         let host = ServerName::try_from(host)
                             .map_err(|_| ConnectionError::TlsHostNotProvided)?;
-                        Ok(cx
-                            .connect(host, s)
+                        cx.connect(host, s)
                             .await
-                            .map_err(|e| ConnectionError::IoError(e))?)
+                            .map_err(ConnectionError::IoError)
                     })),
                 }
             }

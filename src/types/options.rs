@@ -134,21 +134,17 @@ pub struct Certificate(Arc<Vec<rustls::pki_types::CertificateDer<'static>>>);
 #[cfg(feature = "tls-rustls")]
 impl Certificate {
     /// Parses a DER-formatted X509 certificate.
-    pub fn from_der(der: &[u8]) -> Result<Certificate> {
-        let der = der.to_vec();
-        let inner = match rustls::pki_types::CertificateDer::try_from(der) {
-            Ok(certificate) => certificate,
-            Err(err) => return Err(Error::Other(err.to_string().into())),
-        };
-        Ok(Certificate(Arc::new(vec![inner])))
+    pub fn from_der(der: &[u8]) -> Certificate{
+        let inner = rustls::pki_types::CertificateDer::from(der.to_vec());
+        Certificate(Arc::new(vec![inner]))
     }
 
     /// Parses a PEM-formatted X509 certificate.
     pub fn from_pem(pem: &[u8]) -> Result<Certificate> {
         let mut reader = pem;
         let certs = rustls_pemfile::certs(&mut reader)
-            .map(|result| result.unwrap())
-            .collect();
+            .map(|cert| cert.map_err(|e| Error::Other(e.to_string().into())))
+            .collect::<Result<Vec<_>>>()?;
         Ok(Certificate(Arc::new(certs)))
     }
 }
@@ -176,7 +172,7 @@ impl PartialEq for Certificate {
 pub fn load_certificate(file: &str) -> Result<Certificate> {
     let data = fs::read(file)?;
     if file.ends_with(".der") || file.ends_with(".cer") {
-        Certificate::from_der(&data)
+        Ok(Certificate::from_der(&data))
     } else {
         Certificate::from_pem(&data)
     }
